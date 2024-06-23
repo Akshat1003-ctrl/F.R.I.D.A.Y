@@ -9,8 +9,8 @@ from tkinter import Tk, Label, StringVar
 from PIL import Image, ImageTk, ImageSequence
 
 
-NEWS_API_KEY = '886c4cf1a0dc426a8d12508faaa8cddb'  
-ALPHA_VANTAGE_API_KEY = 'ZIWWO74EIUPXW078'  
+NEWS_API_KEY = ''# Insert News API Key  
+ALPHA_VANTAGE_API_KEY = ''# Insert Alpha Vantage Key 
 DEFAULT_LANG = 'en'
 
 class FRIDAYAI:
@@ -30,7 +30,7 @@ class FRIDAYAI:
         self.status_label = Label(root, textvariable=self.status_var, fg="white", bg="black")
         self.status_label.pack()
 
-        self.load_gif("/Users/Akshat/Documents/AI Testing/orange_orb.gif")
+        self.load_gif("") # Insert orb.gif location 
 
         self.perform_system_checks()
 
