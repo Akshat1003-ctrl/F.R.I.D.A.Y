@@ -1,4 +1,3 @@
-import sys
 import datetime
 import tempfile
 import speech_recognition as sr
@@ -8,17 +7,17 @@ import requests
 from tkinter import Tk, Label, StringVar
 from PIL import Image, ImageTk, ImageSequence
 
-
-NEWS_API_KEY = ''# Insert News API Key  
-ALPHA_VANTAGE_API_KEY = ''# Insert Alpha Vantage Key 
-DEFAULT_LANG = 'en'
+# Go to websites and Add API keys to the following:
+NEWS_API_KEY = ''  
+ALPHA_VANTAGE_API_KEY = '' 
+DEFAULT_LANG = 'en-uk'
 
 class FRIDAYAI:
     def __init__(self, root):
         self.root = root
         self.root.title("FRIDAY AI")
-               
-        self.root.attributes('-fullscreen', True)
+       
+        self.root.attributes('-fullscreen', False)
         self.root.configure(bg='black')
 
         self.status_var = StringVar()
@@ -30,7 +29,7 @@ class FRIDAYAI:
         self.status_label = Label(root, textvariable=self.status_var, fg="white", bg="black")
         self.status_label.pack()
 
-        self.load_gif("") # Insert orb.gif location 
+        self.load_gif("/Users/Akshat/Documents/AI Testing/orange_orb.gif")
 
         self.perform_system_checks()
 
@@ -46,7 +45,7 @@ class FRIDAYAI:
         frame = self.frames[self.frame_index]
         self.gif_label.configure(image=frame)
         self.frame_index = (self.frame_index + 1) % len(self.frames)
-        self.root.after(100, self.update_gif)  
+        self.root.after(1, self.update_gif)  
 
     def speak(self, audio, lang=DEFAULT_LANG):
         tts = gTTS(audio, lang=lang)
@@ -82,7 +81,7 @@ class FRIDAYAI:
                     self.speak(f"Here are the top news articles about {query}.", lang=lang)
                 else:
                     self.speak("Here are the top news headlines for today.", lang=lang)
-                for i, article in enumerate(news_data['articles'][:5], 1):
+                for i, article in enumerate(news_data['articles'][:2], 1):
                     self.speak(f"Headline {i}: {article['title']}", lang=lang)
                     print(f"Headline {i}: {article['title']}")
             else:
@@ -163,7 +162,11 @@ class FRIDAYAI:
             self.speak("I am FRIDAY, your personal assistant.", lang=lang)
         elif 'how are you' in command:
             self.speak("I am fine, thank you. How can I assist you today?", lang=lang)
-        elif 'friday shutdown' in command:
+        elif 'who created you' in command:
+            self.speak("I was created by the great Lord Akshat Chandra to serve for Lord Arijit Chandra", lang=lang)
+        elif 'what does your name stand for' or 'what does friday stand for'in command:
+            self.speak("my name stands for: Female Replacement Intelligent Digital Assistant Youth", lang=lang)
+        elif 'friday shutdown' or 'shutdown friday' or 'shut down friday'in command:
             self.speak("Shutting down. Goodbye!", lang=lang)
             self.root.quit()
         else:
@@ -180,11 +183,11 @@ class FRIDAYAI:
         self.speak(current_date, lang=lang)
 
     def perform_system_checks(self):
-        self.speak("Friday personal assistant activating")
         try:
+            self.speak("Friday personal assistant activating")
             self.speak("System checks complete")
         except Exception as e:
-            self.speak(f"Error found during system checks: {e}")
+            self.speak(f"Error during system checks: {e}")
 
         self.wishme()
 
