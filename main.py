@@ -1,51 +1,21 @@
 import datetime
 import tempfile
-import speech_recognition as sr
+import sounddevice as sd
+import numpy as np
+import scipy.io.wavfile as wav
 from gtts import gTTS
 from playsound import playsound
 import requests
-from tkinter import Tk, Label, StringVar
-from PIL import Image, ImageTk, ImageSequence
+import speech_recognition as sr
 
-# Go to websites and Add API keys to the following:
 NEWS_API_KEY = ''  
 ALPHA_VANTAGE_API_KEY = '' 
-DEFAULT_LANG = 'en-uk'
+DEFAULT_LANG = 'en'
 
 class FRIDAYAI:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("FRIDAY AI")
-       
-        self.root.attributes('-fullscreen', False)
-        self.root.configure(bg='black')
-
-        self.status_var = StringVar()
-        self.status_var.set("Listening for commands...")
-
-        self.gif_label = Label(root, bg='black')
-        self.gif_label.pack(expand=True)
-
-        self.status_label = Label(root, textvariable=self.status_var, fg="white", bg="black")
-        self.status_label.pack()
-
-        self.load_gif("/Users/Akshat/Documents/AI Testing/orange_orb.gif")
-
+    def __init__(self):
+        self.status_var = "Listening for commands..."
         self.perform_system_checks()
-
-        self.root.after(1000, self.listen_for_commands)
-
-    def load_gif(self, path):
-        self.gif = Image.open(path)
-        self.frames = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(self.gif)]
-        self.frame_index = 0
-        self.update_gif()
-
-    def update_gif(self):
-        frame = self.frames[self.frame_index]
-        self.gif_label.configure(image=frame)
-        self.frame_index = (self.frame_index + 1) % len(self.frames)
-        self.root.after(1, self.update_gif)  
 
     def speak(self, audio, lang=DEFAULT_LANG):
         tts = gTTS(audio, lang=lang)
@@ -56,11 +26,11 @@ class FRIDAYAI:
     def wishme(self, lang=DEFAULT_LANG):
         hour = datetime.datetime.now().hour
         if 6 <= hour < 12:
-            self.speak("Morning Mr. Chandra", lang=lang)
+            self.speak("Good Morning Mr. Chandra", lang=lang)
         elif 12 <= hour < 18:
-            self.speak("Afternoon Mr. Chandra", lang=lang)
+            self.speak("Good Afternoon Mr. Chandra", lang=lang)
         elif 18 <= hour < 24:
-            self.speak("Evening Mr. Chandra", lang=lang)
+            self.speak("Good Evening Mr. Chandra", lang=lang)
         else:
             self.speak("Hello Mr. Chandra", lang=lang)
         self.speak("FRIDAY at your service. Please tell me how I can assist you today", lang=lang)
@@ -123,23 +93,31 @@ class FRIDAYAI:
             print(e)
 
     def take_command(self):
-        r = sr.Recognizer()
-        with sr.Microphone() as source:
-            print("Listening...")
-            r.pause_threshold = 1
-            audio = r.listen(source)
+        fs = 44100  
+        duration = 5  
+        print("Listening...")
+        audio = sd.rec(int(duration * fs), samplerate=fs, channels=1, dtype='int16')
+        sd.wait()  
 
-        try:
-            print("Recognizing...")
-            query = r.recognize_google(audio, language='en-in')
-            print(f"You said: {query}")
-            return query.lower()
-        except sr.UnknownValueError:
-            self.speak("I didn't catch that. Could you say it again?")
-            return None
-        except sr.RequestError as e:
-            self.speak(f"Could not request results from Google Speech Recognition service; {e}")
-            return None
+        with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as f:
+            wav.write(f.name, fs, audio)
+            f.seek(0)
+
+            recognizer = sr.Recognizer()
+            with sr.AudioFile(f.name) as source:
+                audio_data = recognizer.record(source)
+
+            try:
+                print("Recognizing...")
+                query = recognizer.recognize_google(audio_data, language='en-in')
+                print(f"You said: {query}")
+                return query.lower()
+            except sr.UnknownValueError:
+                self.speak("I didn't catch that. Could you say it again?")
+                return None
+            except sr.RequestError as e:
+                self.speak(f"Could not request results from Google Speech Recognition service; {e}")
+                return None
 
     def handle_command(self, command, lang=DEFAULT_LANG):
         if 'time' in command:
@@ -163,14 +141,23 @@ class FRIDAYAI:
         elif 'how are you' in command:
             self.speak("I am fine, thank you. How can I assist you today?", lang=lang)
         elif 'who created you' in command:
-            self.speak("I was created by the great Lord Akshat Chandra to serve for Lord Arijit Chandra", lang=lang)
-        elif 'what does your name stand for' or 'what does friday stand for'in command:
-            self.speak("my name stands for: Female Replacement Intelligent Digital Assistant Youth", lang=lang)
-        elif 'friday shutdown' or 'shutdown friday' or 'shut down friday'in command:
+            self.speak("I was created by the great Lord Akshat Chandra", lang=lang)
+        elif 'what does your name stand for' in command or 'what does friday stand for' in command:
+            self.speak("My name stands for: Female Replacement Intelligent Digital Assistant Youth", lang=lang)
+        elif 'friday shutdown' in command or 'shutdown friday' in command or 'shut down friday' in command:
             self.speak("Shutting down. Goodbye!", lang=lang)
-            self.root.quit()
+        elif "who is abhijeet's daddy" in command:
+            self.speak("Tarans lauda", lang=lang)
+        elif "swear abhijeet in hindi" in command:
+            self.speak("saale madarchod, tere mu mein laude thoos", lang=lang)
+        elif "what is your thoughts on chatur" in command or "what's your thoughts on chatur" in command:
+            self.speak("He is the biggest madarchod the world has ever received, his father forgot to pull out and now the world has a chatur", lang=lang)
+        elif "what's your thoughts on rishabh" in command or "what's your thoughts on basu" in command:
+            self.speak("alag league ka gaand hain uss chutiya ka", lang=lang)
+        
         else:
             self.speak("I am not sure how to respond to that. Can you please repeat?", lang=lang)
+        self.speak("Is there anything else you need?", lang=lang)
 
     def tell_time(self, lang=DEFAULT_LANG):
         current_time = datetime.datetime.now().strftime("%I:%M %p")
@@ -192,12 +179,11 @@ class FRIDAYAI:
         self.wishme()
 
     def listen_for_commands(self):
-        command = self.take_command()
-        if command:
-            self.handle_command(command)
-        self.root.after(1000, self.listen_for_commands)
+        while True:
+            command = self.take_command()
+            if command:
+                self.handle_command(command)
 
 if __name__ == "__main__":
-    root = Tk()
-    app = FRIDAYAI(root)
-    root.mainloop()
+    app = FRIDAYAI()
+    app.listen_for_commands()
