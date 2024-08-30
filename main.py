@@ -7,6 +7,7 @@ from gtts import gTTS
 from playsound import playsound
 import requests
 import speech_recognition as sr
+import os
 
 NEWS_API_KEY = ''  
 ALPHA_VANTAGE_API_KEY = '' 
@@ -22,6 +23,8 @@ class FRIDAYAI:
         with tempfile.NamedTemporaryFile(delete=True) as fp:
             tts.save(fp.name)
             playsound(fp.name)
+            fp.close()
+            os.unlink(fp.name)
 
     def wishme(self, lang=DEFAULT_LANG):
         hour = datetime.datetime.now().hour
@@ -102,6 +105,8 @@ class FRIDAYAI:
         with tempfile.NamedTemporaryFile(suffix='.wav', delete=False) as f:
             wav.write(f.name, fs, audio)
             f.seek(0)
+            f.close()
+            os.unlink(f.name)
 
             recognizer = sr.Recognizer()
             with sr.AudioFile(f.name) as source:

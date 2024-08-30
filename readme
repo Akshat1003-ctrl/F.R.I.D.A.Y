@@ -1,4 +1,0 @@
-To run the code install these packages in terminal:
-  pip install sounddevice numpy scipy gtts playsound requests SpeechRecognition
-  pip install sounddevice scipy gtts playsound requests speechrecognition
-
