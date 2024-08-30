@@ -1,0 +1,8 @@
+sounddevice
+numpy
+scipy
+gtts
+playsound
+requests
+SpeechRecognition
+PyAudio
